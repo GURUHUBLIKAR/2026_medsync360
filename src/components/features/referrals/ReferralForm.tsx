@@ -15,6 +15,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { Button } from '../../ui/Button';
+import { VoiceInput, VoiceTextarea } from '../../ui/VoiceInput';
 import { supabase } from '../../../lib/supabase';
 import { cn } from '../../../lib/utils';
 import toast from 'react-hot-toast';
@@ -77,6 +78,18 @@ interface Doctor {
   kmc_number: string | null;
 }
 
+// Local-safe "today" as yyyy-MM-dd (avoids the UTC off-by-one from toISOString
+// in timezones ahead of UTC, e.g. IST) and current time as HH:mm.
+function todayDateString(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function nowTimeString(): string {
+  const d = new Date();
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
 function formatTimeAMPM(time: string): string {
   if (!time) return '';
   if (/am|pm/i.test(time)) return time;
@@ -129,8 +142,8 @@ export const ReferralForm: React.FC<ReferralFormProps> = ({ onSubmit, onCancel }
     patientName: '',
     age: '',
     sex: 'Male',
-    admissionDate: '',
-    patientAdmissionTime: '',
+    admissionDate: todayDateString(),
+    patientAdmissionTime: nowTimeString(),
     roomNo: '',
     patientIpNo: '',
     chiefComplaint: '',
@@ -362,8 +375,8 @@ export const ReferralForm: React.FC<ReferralFormProps> = ({ onSubmit, onCancel }
         patientName: '',
         age: '',
         sex: 'Male',
-        admissionDate: '',
-        patientAdmissionTime: '',
+        admissionDate: todayDateString(),
+        patientAdmissionTime: nowTimeString(),
         roomNo: '',
         patientIpNo: '',
         chiefComplaint: '',
@@ -419,16 +432,15 @@ export const ReferralForm: React.FC<ReferralFormProps> = ({ onSubmit, onCancel }
           Patient Information
         </h3>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Patient Name */}
-          <div className="md:col-span-2">
+          <div className="sm:col-span-2">
             <label className="block text-sm font-medium text-neutral-700 mb-2">
               Patient Name <span className="text-red-500">*</span>
             </label>
-            <input
-              type="text"
+            <VoiceInput
               value={formData.patientName}
-              onChange={(e) => setFormData(prev => ({ ...prev, patientName: e.target.value }))}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, patientName: value }))}
               className={cn(
                 "w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors",
                 errors.patientName ? 'border-red-300' : 'border-neutral-300'
@@ -461,9 +473,7 @@ export const ReferralForm: React.FC<ReferralFormProps> = ({ onSubmit, onCancel }
               <p className="text-xs text-red-600 mt-1">{errors.age}</p>
             )}
           </div>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Sex */}
           <div>
             <label className="block text-sm font-medium text-neutral-700 mb-2">
@@ -518,9 +528,7 @@ export const ReferralForm: React.FC<ReferralFormProps> = ({ onSubmit, onCancel }
               )}
             </div>
           </div>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Room No */}
           <div>
             <label className="block text-sm font-medium text-neutral-700 mb-2">
@@ -563,15 +571,17 @@ export const ReferralForm: React.FC<ReferralFormProps> = ({ onSubmit, onCancel }
         </div>
       </div>
 
+      {/* Clinical Details */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
       {/* Chief Complaint */}
       <div>
         <label className="block text-sm font-medium text-neutral-700 mb-2">
           Chief Complaint <span className="text-red-500">*</span>
         </label>
-        <textarea
+        <VoiceTextarea
           value={formData.chiefComplaint}
-          onChange={(e) => setFormData(prev => ({ ...prev, chiefComplaint: e.target.value }))}
-          rows={4}
+          onValueChange={(value) => setFormData(prev => ({ ...prev, chiefComplaint: value }))}
+          rows={3}
           className={cn(
             "w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors resize-none",
             errors.chiefComplaint ? 'border-red-300' : 'border-neutral-300'
@@ -588,9 +598,9 @@ export const ReferralForm: React.FC<ReferralFormProps> = ({ onSubmit, onCancel }
         <label className="block text-sm font-medium text-neutral-700 mb-2">
           Past History <span className="text-red-500">*</span>
         </label>
-        <textarea
+        <VoiceTextarea
           value={formData.pastHistory}
-          onChange={(e) => setFormData(prev => ({ ...prev, pastHistory: e.target.value }))}
+          onValueChange={(value) => setFormData(prev => ({ ...prev, pastHistory: value }))}
           rows={3}
           className={cn(
             "w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors resize-none",
@@ -608,9 +618,9 @@ export const ReferralForm: React.FC<ReferralFormProps> = ({ onSubmit, onCancel }
         <label className="block text-sm font-medium text-neutral-700 mb-2">
           General Examination <span className="text-red-500">*</span>
         </label>
-        <textarea
+        <VoiceTextarea
           value={formData.generalExamination}
-          onChange={(e) => setFormData(prev => ({ ...prev, generalExamination: e.target.value }))}
+          onValueChange={(value) => setFormData(prev => ({ ...prev, generalExamination: value }))}
           rows={3}
           className={cn(
             "w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors resize-none",
@@ -628,10 +638,10 @@ export const ReferralForm: React.FC<ReferralFormProps> = ({ onSubmit, onCancel }
         <label className="block text-sm font-medium text-neutral-700 mb-2">
           Medication Given <span className="text-red-500">*</span>
         </label>
-        <textarea
+        <VoiceTextarea
           value={formData.medicationGiven}
-          onChange={(e) => setFormData(prev => ({ ...prev, medicationGiven: e.target.value }))}
-          rows={2}
+          onValueChange={(value) => setFormData(prev => ({ ...prev, medicationGiven: value }))}
+          rows={3}
           className={cn(
             "w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors resize-none",
             errors.medicationGiven ? 'border-red-300' : 'border-neutral-300'
@@ -641,6 +651,7 @@ export const ReferralForm: React.FC<ReferralFormProps> = ({ onSubmit, onCancel }
         {errors.medicationGiven && (
           <p className="text-xs text-red-600 mt-1">{errors.medicationGiven}</p>
         )}
+      </div>
       </div>
 
       {/* Urgency Level */}

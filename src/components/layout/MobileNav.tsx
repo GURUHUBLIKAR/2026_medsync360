@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { 
   Home, 
   FileText, 
@@ -22,6 +22,7 @@ const mobileNavItemsBase = [
 
 const MobileNav: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [showRosterModal, setShowRosterModal] = useState(false);
 
   // Create navigation with current state based on location
@@ -52,9 +53,11 @@ const MobileNav: React.FC = () => {
               <motion.a
                 href={item.href || '#'}
                 onClick={(e) => {
+                  e.preventDefault();
                   if (item.name === 'Roster') {
-                    e.preventDefault();
                     setShowRosterModal(true);
+                  } else if (item.href) {
+                    navigate(item.href);
                   }
                 }}
                 className={cn(

@@ -719,7 +719,7 @@ const ReferralManagement: React.FC = () => {
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         title="Create New Referral"
-        size="lg"
+        size="full"
       >
         <ReferralForm
           onSubmit={handleCreateReferral}

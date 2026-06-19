@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { 
   Home, 
   Users, 
@@ -38,6 +38,7 @@ const navigationItems = [
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, className }) => {
   const { isMobile, isTablet, isDesktop } = useResponsive();
   const location = useLocation();
+  const navigate = useNavigate();
   const [showRosterModal, setShowRosterModal] = useState(false);
 
   // Create navigation with current state based on location
@@ -52,7 +53,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, className }) => {
       transition: { duration: 0.3, ease: 'easeOut' }
     },
     closed: {
-      x: isTablet ? -64 : -320, // Adjust based on sidebar width
+      x: isTablet ? -64 : -256, // Adjust based on sidebar width
       transition: { duration: 0.3, ease: 'easeIn' }
     }
   };
@@ -89,7 +90,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, className }) => {
         className={cn(
           "fixed inset-y-0 left-0 z-50 bg-white border-r border-neutral-200",
           // Responsive width
-          isTablet ? "w-16" : "w-80",
+          isTablet ? "w-16" : "w-64",
           // Desktop positioning
           "lg:static lg:translate-x-0",
           className
@@ -122,9 +123,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, className }) => {
                   key={item.name} 
                   href={item.href || '#'}
                   onClick={(e) => {
+                    e.preventDefault();
                     if (item.action === 'roster') {
-                      e.preventDefault();
                       setShowRosterModal(true);
+                    } else if (item.href) {
+                      navigate(item.href);
+                      onClose();
                     }
                   }}
                   className={cn(

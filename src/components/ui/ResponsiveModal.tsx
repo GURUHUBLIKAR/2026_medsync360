@@ -11,7 +11,10 @@ interface ResponsiveModalProps {
   title?: string;
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
   closeOnOverlayClick?: boolean;
-  showCloseButton?: boolean; 
+  showCloseButton?: boolean;
+  // z-index for the outer container. Override (e.g. "z-[100]") for modals that
+  // must sit above other modals — like the session-timeout warning.
+  zIndexClassName?: string;
 }
 
 const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
@@ -21,7 +24,8 @@ const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
   title,
   size = 'md',
   closeOnOverlayClick = true,
-  showCloseButton = true
+  showCloseButton = true,
+  zIndexClassName = 'z-50'
 }) => {
   const { isMobile } = useResponsive();
 
@@ -82,7 +86,7 @@ const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
+        <div className={cn("fixed inset-0 overflow-y-auto", zIndexClassName)}>
           {/* Overlay */}
           <motion.div 
             variants={overlayVariants}
