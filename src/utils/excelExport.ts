@@ -193,6 +193,27 @@ function buildReportData(referral: Referral, completionData: any, transferHistor
       ? completeMedicationTrail[0].record_timestamp
       : referral.createdAt;
 
+    // Hop summary for the timeline: ordered department path (consecutive duplicates
+    // collapsed) + number of holder (doctor) changes counted as transfers. Derived
+    // from the chain-complete medication trail so it works in every report path.
+    const departmentPath: string[] = [];
+    let totalTransfers = 0;
+    let lastDoctorId: string | undefined;
+    for (const step of completeMedicationTrail) {
+      const dept = (step as any).department_context;
+      if (dept && departmentPath[departmentPath.length - 1] !== dept) {
+        departmentPath.push(dept);
+      }
+      const docId = (step as any).doctor_id;
+      if (lastDoctorId !== undefined && docId && docId !== lastDoctorId) {
+        totalTransfers++;
+      }
+      if (docId) lastDoctorId = docId;
+    }
+    const departmentsVisited = departmentPath.length > 0
+      ? departmentPath.join(' → ')
+      : [referral.fromDepartment, referral.department].filter(Boolean).join(' → ');
+
     // Create the exact 2-column format matching the screenshot
     const data = [
       // Report Header
@@ -283,6 +304,8 @@ function buildReportData(referral: Referral, completionData: any, transferHistor
       ['Referral Created:', originalCreatedAt ? format(new Date(originalCreatedAt), 'MMMM d, yyyy - h:mm a') : 'N/A'],
       ['Referral Accepted:', referral.acceptedAt ? format(new Date(referral.acceptedAt), 'MMMM d, yyyy - h:mm a') : 'N/A'],
       ['Referral Completed:', completionData.completedAt ? format(new Date(completionData.completedAt), 'MMMM d, yyyy - h:mm a') : 'N/A'],
+      ['Departments Visited:', departmentsVisited || 'N/A'],
+      ['Total Transfers:', totalTransfers.toString()],
       ['Total Duration:', originalCreatedAt && completionData.completedAt ? calculateDuration(originalCreatedAt, completionData.completedAt) : 'N/A'],
       [], // Spacer
 

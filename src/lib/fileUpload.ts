@@ -195,12 +195,15 @@ export const createAttachmentRecord = async (
   uploadedBy: string
 ) => {
   try {
+    // NOTE: referral_attachments has no original_file_name column — including it
+    // makes Postgres reject the whole row (and the error was historically
+    // swallowed), so every attachment insert silently wrote 0 rows. Keep this
+    // insert aligned with the actual table schema.
     const { data, error } = await supabase
       .from('referral_attachments')
       .insert({
         referral_id: referralId,
         file_name: fileName,
-        original_file_name: originalFileName,
         file_type: fileType,
         file_size: fileSize,
         file_url: fileUrl,

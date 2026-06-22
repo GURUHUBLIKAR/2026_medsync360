@@ -47,7 +47,7 @@ These conventions cause silent failures if violated:
 
 2. **RPC parameter names must exactly match the Postgres function signatures.** Mismatched names don't error — they silently pass `null`. Key RPCs: `transfer_referral`, `complete_referral`, `get_complete_medication_trail`, `get_medication_timeline`, `get_referral_transfer_history` (params are prefixed `p_`, e.g. `p_referral_id`). The full contract is in MEDSYNC_PROJECT_DOCUMENTATION.md §12.
 
-3. **Atomic multi-table operations are done in Postgres RPCs, not the client.** A transfer creates a child referral, flips the original to `Transferred`, copies attachments, and writes medication history — all inside `transfer_referral()`. Don't reimplement these as sequential client calls.
+3. **Atomic multi-table operations are done in Postgres RPCs, not the client.** A transfer creates a child referral, flips the original to `Transferred`, and writes medication history — all inside `transfer_referral()`. **It does NOT copy attachment rows** — attachments stay on whichever referral they were uploaded to; use `get_chain_attachments()` to surface all files across the chain. Don't reimplement these as sequential client calls.
 
 4. **Medication trail spans the whole transfer chain.** Referrals link via `transfer_parent_id`. `get_complete_medication_trail()` aggregates every medication action across the chain; the Excel report and the ReferralDetails timeline both consume it. Field is `record_timestamp` (not `timestamp`).
 

@@ -13,6 +13,12 @@ export interface ReferralAttachment {
   fileUrl: string;
   uploadedBy: string;
   createdAt: string;
+  // Chain-aware fields (populated by useChainAttachments; optional so the
+  // per-referral useReferralAttachments shape stays compatible).
+  referralId?: string;
+  departmentContext?: string;
+  hopLevel?: number;
+  isCurrentReferral?: boolean;
 }
 
 // Medication history types

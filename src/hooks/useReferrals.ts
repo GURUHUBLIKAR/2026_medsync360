@@ -212,10 +212,9 @@ const createReferral = async (referralData: {
               .insert({
                 referral_id: data.id,
                 file_name: fileName,
-                original_file_name: fileName, // We could pass this separately if needed
                 file_type: getFileTypeFromName(fileName),
                 file_url: urlData.publicUrl,
-                uploaded_by: referralData.fromUserId || 'unknown'
+                uploaded_by: referralData.fromUserId || null
               });
 
             if (attachmentError) {
@@ -695,6 +694,41 @@ export const useReferralAttachments = (referralId: string) => {
     },
     enabled: !!referralId,
     staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
+// Fetch attachments across the ENTIRE transfer chain (every hop), so a downstream
+// doctor sees files attached upstream — mirrors how the medication journey spans
+// the chain. Backed by the SECURITY DEFINER get_chain_attachments RPC, which
+// bypasses RLS truncation (see migration 20260619120000_get_chain_attachments).
+export const useChainAttachments = (referralId: string) => {
+  return useQuery({
+    queryKey: [...referralKeys.detail(referralId), 'chain-attachments', referralId],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc('get_chain_attachments', {
+        p_referral_id: referralId,
+      });
+      if (error) {
+        console.error('Error fetching chain attachments:', error.message);
+        throw error;
+      }
+      if (!data || data.length === 0) return [];
+      return await Promise.all((data as any[]).map(async (item: any) => ({
+        id: item.id,
+        fileName: item.file_name,
+        fileType: item.file_type || getFileTypeFromName(item.file_name),
+        fileSize: item.file_size ? formatFileSize(item.file_size) : 'Unknown',
+        fileUrl: await getSignedFileUrl(item.file_name),
+        uploadedBy: item.uploader_name || 'Unknown',
+        createdAt: item.created_at,
+        referralId: item.referral_id,
+        departmentContext: item.referral_department,
+        hopLevel: item.hop_level,
+        isCurrentReferral: item.is_current_referral,
+      })));
+    },
+    enabled: !!referralId,
+    staleTime: 0, // always fresh — clinical evidence must be current
   });
 };
 

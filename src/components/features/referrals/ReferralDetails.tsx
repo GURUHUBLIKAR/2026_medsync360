@@ -3,10 +3,11 @@ import { motion } from 'framer-motion';
 import { FileText, Calendar, Clock, AlertTriangle, CheckCircle, XCircle, Archive, Download, ExternalLink, Eye, File, FileImage, File as FilePdf, FileText as FileTextIcon, Shield, Tag, User, Building2, X, Stethoscope } from 'lucide-react';
 import { Button } from '../../ui/Button';
 import {
-  useReferralAttachments,
+  useChainAttachments,
   useTransferHistory,
   useMedicationHistory,
   useCompleteMedicationTrail,
+  useTransferReferral,
 } from '../../../hooks/useReferrals';
 import { useQueryClient } from '@tanstack/react-query';
 import { cn } from '../../../lib/utils';
@@ -20,6 +21,7 @@ import { generateReferralExcelReport } from '../../../utils/excelExport';
 import type { CompletedReferralData } from '../../../types/referral.types';
 import { useAuthStore } from '../../../store/authStore';
 import { supabase } from '../../../lib/supabase';
+import { uploadMultipleFiles, getFileTypeCategory } from '../../../lib/fileUpload';
 import { DeclineReferralModal } from './DeclineReferralModal';
 
 function formatTimeAMPM(time: string): string {
@@ -120,7 +122,8 @@ export const ReferralDetails: React.FC<ReferralDetailsProps> = ({
   onClose
 }) => {
   const queryClient = useQueryClient();
-  const { data: attachments = [], isLoading: loading } = useReferralAttachments(referral.id);
+  const transferReferralMutation = useTransferReferral();
+  const { data: attachments = [], isLoading: loading } = useChainAttachments(referral.id);
   const { data: transferHistory = [] } = useTransferHistory(referral.id);
   const { data: medicationHistory = [] } = useMedicationHistory(referral.id);
   const { data: completeMedicationTrail = [], isLoading: isLoadingTrail, refetch: refetchTrail } = useCompleteMedicationTrail(referral.id);
@@ -365,18 +368,31 @@ export const ReferralDetails: React.FC<ReferralDetailsProps> = ({
           ]);
 
           const freshMedicationHistory = medicationHistoryResult.data;
-          const completeMedicationTrail = completeMedicationTrailResult.data;
+          const completeMedicationTrail = completeMedicationTrailResult.data || [];
+
+          // The in-memory referral never carries attachments — count them across the
+          // whole transfer chain (derive chain referral ids from the trail) so the
+          // report reflects every file added at any hop, not 0.
+          const chainReferralIds = Array.from(new Set(
+            (completeMedicationTrail as any[]).map((s: any) => s.referral_id).filter(Boolean)
+          ));
+          if (chainReferralIds.length === 0) chainReferralIds.push(referral.id);
+          const { data: chainAttachments } = await supabase
+            .from('referral_attachments').select('id').in('referral_id', chainReferralIds);
+          const chainAttachmentIds = ((chainAttachments as any[]) || []).map((a: any) => a.id as string);
 
           console.log('📊 Excel Report Data:', {
             referralId: referral.id,
             medicationHistoryCount: freshMedicationHistory?.length || 0,
             completeMedicationTrailCount: completeMedicationTrail?.length || 0,
+            chainAttachmentCount: chainAttachmentIds.length,
             trail: completeMedicationTrail
           });
 
           const reportData: CompletedReferralData = {
             referral: {
               ...referral,
+              attachments: chainAttachmentIds,
               medication_history: freshMedicationHistory || []
             },
             completionData: {
@@ -429,29 +445,69 @@ export const ReferralDetails: React.FC<ReferralDetailsProps> = ({
     setShowTransferModal(true);
   };
 
-  // Handle referral transfer
-  const handleReferralTransfer = async (transferData: TransferData) => {
-    try {
-      console.log('Transferring referral with data:', transferData);
-      
-      // Here you would typically:
-      // 1. Upload any new attachments
-      // 2. Create a new referral for the target department
-      // 3. Update the original referral status
-      // 4. Notify the target doctor
-      
-      // For now, we'll simulate the transfer
-      toast.success(`Referral transferred to ${transferData.department}`);
-      
-      // Update referral status (you might want a different status like 'Transferred')
-      onStatusChange(referral.id, 'Closed');
-      
-      setShowTransferModal(false);
-      onClose();
-    } catch (error) {
-      console.error('Error transferring referral:', error);
-      toast.error('Failed to transfer referral');
+  // Handle referral transfer — calls the real transfer_referral RPC
+  const handleReferralTransfer = (incomingTransferData: TransferData) => {
+    if (!profile?.id) {
+      toast.error('User session not found. Please refresh and try again.');
+      return;
     }
+
+    const transferPayload = {
+      originalReferralId: referral.id,
+      newToUserId: incomingTransferData.doctorId,
+      newToDepartment: incomingTransferData.department,
+      transferReason: incomingTransferData.transferReason || '',
+      transferNotes: incomingTransferData.specialNotes || '',
+      transferredByUserId: profile.id,
+      updatedMedicationOnTransfer: incomingTransferData.updatedMedication
+    };
+
+    transferReferralMutation.mutate(transferPayload, {
+      onSuccess: async (newReferralId: string) => {
+        // Persist any files the doctor attached during the transfer onto the NEW
+        // child referral, so they surface at this hop of the chain journey (the
+        // child's from_user_id is the transferring doctor, so the RLS INSERT
+        // policy on referral_attachments permits this). Best-effort: a file
+        // failure must NOT undo the already-committed transfer — but unlike the
+        // old create path, we surface failures as toasts instead of swallowing.
+        const files = incomingTransferData.attachments || [];
+        if (newReferralId && files.length > 0) {
+          try {
+            const uploadResults = await uploadMultipleFiles(files);
+            for (let i = 0; i < uploadResults.length; i++) {
+              const res = uploadResults[i];
+              const srcFile = files[i];
+              if (res.success && res.fileName && res.fileUrl) {
+                const { error: attErr } = await supabase
+                  .from('referral_attachments')
+                  .insert({
+                    referral_id: newReferralId,
+                    file_name: res.fileName,
+                    file_type: getFileTypeCategory(srcFile.type),
+                    file_url: res.fileUrl,
+                    uploaded_by: profile.id,
+                  });
+                if (attErr) {
+                  console.error('Transfer attachment insert failed:', attErr);
+                  toast.error(`Could not save attachment "${srcFile?.name || res.fileName}"`);
+                }
+              } else {
+                toast.error(`Upload failed for "${srcFile?.name || 'file'}": ${res.error || 'unknown error'}`);
+              }
+            }
+          } catch (e) {
+            console.error('Transfer attachment processing failed:', e);
+            toast.error('Some attachments could not be saved.');
+          }
+        }
+        queryClient.invalidateQueries({ queryKey: ['referrals'] });
+        setShowTransferModal(false);
+        onClose();
+      },
+      onError: (error: any) => {
+        toast.error(`Transfer failed: ${error?.message || 'Unknown error'}`);
+      }
+    });
   };
 
   // Handle on-demand Excel report download for closed referrals
@@ -1013,70 +1069,115 @@ export const ReferralDetails: React.FC<ReferralDetailsProps> = ({
         </div>
       )}
 
-      {/* Attachments */}
-      {(attachments.length > 0 || loading) && (
-        <div>
+      {/* Attachments — always shown so users can see "no attachments" rather than a blank gap */}
+      <div>
           <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center" id="attachments-section">
             <FileText className="w-5 h-5 text-gray-600 mr-2" />
             Attachments
+            {!loading && (
+              <span className="ml-2 text-sm font-normal text-gray-500">
+                ({attachments.length} {attachments.length === 1 ? 'file' : 'files'} across this referral journey)
+              </span>
+            )}
           </h3>
-          
+
           {loading ? (
             <div className="flex justify-center items-center h-24 bg-gray-50 border border-gray-200 rounded-lg">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             </div>
+          ) : attachments.length === 0 ? (
+            <div className="flex items-center justify-center h-16 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-500">
+              No attachments for this referral journey
+            </div>
           ) : (
-            <div className="space-y-2">
-              {attachments.map((attachment: any) => (
-                <div 
-                  key={attachment.id}
-                  className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
-                >
-                  <div className="flex items-center">
-                    {getFileIcon(attachment.fileType)}
-                    <div className="ml-3">
-                      <p className="text-sm font-medium text-gray-900">{attachment.fileName}</p>
-                      <div className="flex items-center text-xs text-gray-500 mt-1">
-                        <span className="mr-3">{attachment.fileSize}</span>
-                        <span>{format(new Date(attachment.createdAt), 'MMM d, yyyy')}</span>
+            <div className="space-y-4">
+              {Object.entries(
+                (attachments as any[]).reduce((groups: Record<string, any[]>, att: any) => {
+                  const key = String(att.hopLevel ?? 0);
+                  (groups[key] = groups[key] || []).push(att);
+                  return groups;
+                }, {} as Record<string, any[]>)
+              )
+                .sort((a, b) => Number(a[0]) - Number(b[0]))
+                .map(([hopKey, items]) => {
+                  const groupItems = items as any[];
+                  const first = groupItems[0];
+                  const hopLevel = first.hopLevel ?? 0;
+                  const isCurrent = groupItems.some((i: any) => i.isCurrentReferral);
+                  const hopLabel = hopLevel === 0 ? 'ORIGIN' : `HOP ${hopLevel + 1}`;
+                  return (
+                    <div key={hopKey}>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className={cn(
+                          'text-xs font-semibold px-2 py-0.5 rounded',
+                          isCurrent ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'
+                        )}>
+                          {hopLabel}{isCurrent ? ' · THIS REFERRAL' : ''}
+                        </span>
+                        {first.departmentContext && (
+                          <span className="text-xs text-gray-500 flex items-center">
+                            <Building2 className="w-3 h-3 mr-1" />
+                            {first.departmentContext}
+                          </span>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        {groupItems.map((attachment: any) => (
+                          <div
+                            key={attachment.id}
+                            className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
+                          >
+                            <div className="flex items-center">
+                              {getFileIcon(attachment.fileType)}
+                              <div className="ml-3">
+                                <p className="text-sm font-medium text-gray-900">{attachment.fileName}</p>
+                                <div className="flex items-center text-xs text-gray-500 mt-1">
+                                  <span className="mr-3">{attachment.fileSize}</span>
+                                  <span className="mr-3">{format(new Date(attachment.createdAt), 'MMM d, yyyy')}</span>
+                                  {attachment.uploadedBy && attachment.uploadedBy !== 'Unknown' && (
+                                    <span>by {attachment.uploadedBy}</span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center space-x-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={(e: React.MouseEvent) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  handlePreview(attachment);
+                                }}
+                                className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                              >
+                                <Eye size={14} className="mr-1" />
+                                View
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={(e: React.MouseEvent) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  handleDownload(attachment);
+                                }}
+                                className="text-green-600 border-green-200 hover:bg-green-50"
+                              >
+                                <Download size={14} className="mr-1" />
+                                Download
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e: React.MouseEvent) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handlePreview(attachment);
-                      }}
-                      className="text-blue-600 border-blue-200 hover:bg-blue-50"
-                    >
-                      <Eye size={14} className="mr-1" />
-                      View
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e: React.MouseEvent) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleDownload(attachment);
-                      }}
-                      className="text-green-600 border-green-200 hover:bg-green-50"
-                    >
-                      <Download size={14} className="mr-1" />
-                      Download
-                    </Button>
-                  </div>
-                </div>
-              ))}
+                  );
+                })}
             </div>
           )}
-        </div>
-      )}
+      </div>
 
       {/* Security Note */}
       <div className="flex flex-col sm:flex-row items-center justify-between text-xs text-gray-500 bg-gray-50 p-2 rounded-lg">
