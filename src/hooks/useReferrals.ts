@@ -106,7 +106,13 @@ const fetchReferrals = async (userId: string): Promise<Referral[]> => {
         createdAt: item.created_at,
         acceptedAt: item.start_time || null,
         attachments: item.attachments || [],
-        end_time: item.end_time
+        end_time: item.end_time,
+        // Additive fields used by Analytics (safe: optional on the Referral type;
+        // `select('*')` already returns them when the columns exist).
+        transfer_parent_id: item.transfer_parent_id || undefined,
+        transferred_at: item.transferred_at || undefined,
+        medication_update_count: item.medication_update_count ?? undefined,
+        final_diagnosis_category: item.final_diagnosis_category || undefined,
       };
     });
   } catch (error) {

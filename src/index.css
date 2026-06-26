@@ -260,3 +260,81 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* =========================================================================
+   GLOBAL THEME (mint light + dark, switchable)
+   Surfaces are driven by CSS variables so the theme can flip by toggling the
+   `dark` class on <html> (see preferencesStore + App). Light = soft mint with
+   white cards; dark = slate. Green accents come from the `primary` palette.
+   ========================================================================= */
+
+:root {
+  --page-bg: #eef6f0;       /* soft mint */
+  --card-bg: #ffffff;       /* white cards */
+  --chrome-bg: #eef6f0;     /* header */
+  --sidebar-bg: #e9f4ec;    /* sidebar */
+  --chrome-border: #dcebe0; /* header/sidebar hairline */
+  --hairline: #e1ede5;      /* card/divider borders */
+  --text-strong: #111827;   /* near-black */
+}
+
+html.dark {
+  --page-bg: #0f172a;       /* slate-900 */
+  --card-bg: #1e293b;       /* slate-800 */
+  --chrome-bg: #1e293b;
+  --sidebar-bg: #0f1a2e;
+  --chrome-border: #1f2b3e;
+  --hairline: #334155;      /* slate-700 */
+  --text-strong: #f1f5f9;   /* slate-100 */
+}
+
+/* Page background + default text */
+body {
+  background-color: var(--page-bg) !important;
+  color: var(--text-strong) !important;
+}
+
+/* Page-level surfaces follow the page bg; cards follow the card bg */
+.bg-background,
+.bg-neutral-50,
+.bg-gray-50 { background-color: var(--page-bg) !important; }
+.bg-white { background-color: var(--card-bg) !important; }
+
+/* Card / divider borders */
+.border-border,
+.border-neutral-100, .border-gray-100,
+.border-neutral-200, .border-gray-200 { border-color: var(--hairline) !important; }
+* { border-color: var(--hairline); }
+
+/* Dark-only text + surface remaps (light theme keeps the original dark text) */
+html.dark .text-black,
+html.dark .text-neutral-900, html.dark .text-gray-900 { color: #f8fafc !important; }
+html.dark .text-neutral-800, html.dark .text-gray-800 { color: #e2e8f0 !important; }
+html.dark .text-neutral-700, html.dark .text-gray-700 { color: #cbd5e1 !important; }
+html.dark .text-neutral-600, html.dark .text-gray-600 { color: #94a3b8 !important; }
+html.dark .text-neutral-500, html.dark .text-gray-500 { color: #94a3b8 !important; }
+html.dark .text-neutral-400, html.dark .text-gray-400 { color: #64748b !important; }
+html.dark .bg-neutral-100, html.dark .bg-gray-100 { background-color: #0f172a !important; }
+html.dark .bg-neutral-200, html.dark .bg-gray-200 { background-color: #334155 !important; }
+html.dark .border-neutral-300, html.dark .border-gray-300 { border-color: #475569 !important; }
+
+/* Scrollbar */
+::-webkit-scrollbar-track { background: #e6f0e9; }
+::-webkit-scrollbar-thumb { background: #cfe3d4; }
+::-webkit-scrollbar-thumb:hover { background: #b6d6bf; }
+html.dark ::-webkit-scrollbar-track { background: #1e293b; }
+html.dark ::-webkit-scrollbar-thumb { background: #475569; }
+html.dark ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
+/* Soft, consistent elevation on all cards.
+   - White cards with no shadow utility get the soft shadow.
+   - shadow-sm is bumped to the same soft shadow so cards look uniform.
+   - Larger shadows (shadow-md/lg/xl/2xl on modals/dropdowns) are left intact.
+   - Form controls stay flat even though they use bg-white. */
+.bg-white:not([class*="shadow"]) {
+  box-shadow: 0 2px 8px rgba(16, 24, 40, 0.06), 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+.shadow-sm {
+  box-shadow: 0 2px 8px rgba(16, 24, 40, 0.06), 0 1px 2px rgba(16, 24, 40, 0.04) !important;
+}
+input.bg-white, textarea.bg-white, select.bg-white { box-shadow: none !important; }

@@ -65,37 +65,37 @@ export const DashboardUserInfo: React.FC<DashboardUserInfoProps> = ({ profile })
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3 }}
-        className="bg-white/10 backdrop-blur-sm rounded-lg p-4 mt-4"
+        className="bg-primary-50 border border-primary-100 rounded-lg p-4 mt-4"
       >
         <div className="grid grid-cols-2 gap-2 md:gap-3 text-xs md:text-sm">
           <div className="grid grid-cols-2 gap-1 md:gap-2 text-xs">
             {/* Age */}
             {age && (
               <div className="flex items-center">
-                <Calendar className="w-3 h-3 mr-1 text-primary-200" />
-                <span className="text-primary-100">{age} years</span>
+                <Calendar className="w-3 h-3 mr-1 text-primary-600" />
+                <span className="text-neutral-600">{age} years</span>
               </div>
             )}
             
             {/* KMC Number */}
             <div className="flex items-center">
-              <CreditCard className="w-3 h-3 mr-1 text-primary-200" />
+              <CreditCard className="w-3 h-3 mr-1 text-primary-600" />
               <span className={cn(
-                "text-primary-100 font-mono text-xs",
-                !isKMCValid && "text-yellow-200"
+                "text-neutral-600 font-mono text-xs",
+                !isKMCValid && "text-yellow-700"
               )}>
                 {formattedKMC}
               </span>
               {isKMCValid && (
-                <Shield className="w-2 h-2 ml-1 text-green-300" />
+                <Shield className="w-2 h-2 ml-1 text-success-600" />
               )}
             </div>
             
             {/* Phone */}
             {profile.phone && (
               <div className="flex items-center col-span-2">
-                <Phone className="w-3 h-3 mr-1 text-primary-200" />
-                <span className="text-primary-100">{profile.phone}</span>
+                <Phone className="w-3 h-3 mr-1 text-primary-600" />
+                <span className="text-neutral-600">{profile.phone}</span>
               </div>
             )}
           </div>
@@ -109,11 +109,11 @@ export const DashboardUserInfo: React.FC<DashboardUserInfoProps> = ({ profile })
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.5, delay: 0.2 }}
-      className="bg-white/10 backdrop-blur-sm rounded-lg p-4 md:p-5 lg:p-6 min-w-[280px] md:min-w-[320px]"
+      className="bg-primary-50 border border-primary-100 rounded-lg p-4 md:p-5 lg:p-6 min-w-[280px] md:min-w-[320px]"
     >
       <div className="flex items-center mb-4">
-        <User className="w-3 h-3 md:w-4 md:h-4 mr-2 text-primary-200" />
-        <h3 className="text-sm md:text-base font-semibold text-white">Profile Information</h3>
+        <User className="w-3 h-3 md:w-4 md:h-4 mr-2 text-primary-600" />
+        <h3 className="text-sm md:text-base font-semibold text-neutral-900">Profile Information</h3>
       </div>
       
       <div className="space-y-1 md:space-y-2">
@@ -121,28 +121,28 @@ export const DashboardUserInfo: React.FC<DashboardUserInfoProps> = ({ profile })
         {age && (
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <Calendar className="w-3 h-3 md:w-3 md:h-3 mr-1 md:mr-2 text-primary-200" />
-              <span className="text-primary-100 text-xs md:text-xs">Age</span>
+              <Calendar className="w-3 h-3 md:w-3 md:h-3 mr-1 md:mr-2 text-primary-600" />
+              <span className="text-neutral-600 text-xs md:text-xs">Age</span>
             </div>
-            <span className="text-white font-medium text-xs md:text-sm">{age} years</span>
+            <span className="text-neutral-900 font-medium text-xs md:text-sm">{age} years</span>
           </div>
         )}
         
         {/* KMC Number with Validation */}
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <CreditCard className="w-3 h-3 md:w-3 md:h-3 mr-1 md:mr-2 text-primary-200" />
-            <span className="text-primary-100 text-xs md:text-xs">KMC Number</span>
+            <CreditCard className="w-3 h-3 md:w-3 md:h-3 mr-1 md:mr-2 text-primary-600" />
+            <span className="text-neutral-600 text-xs md:text-xs">KMC Number</span>
           </div>
           <div className="flex items-center">
             <span className={cn(
               "font-mono text-xs md:text-xs",
-              isKMCValid ? "text-white" : "text-yellow-200"
+              isKMCValid ? "text-neutral-900" : "text-yellow-700"
             )}>
               {formattedKMC}
             </span>
             {isKMCValid ? (
-              <Shield className="w-3 h-3 md:w-3 md:h-3 ml-1 md:ml-2 text-green-300" />
+              <Shield className="w-3 h-3 md:w-3 md:h-3 ml-1 md:ml-2 text-success-600" />
             ) : (
               <div className="w-3 h-3 md:w-3 md:h-3 ml-1 md:ml-2 rounded-full bg-yellow-400 flex items-center justify-center">
                 <span className="text-yellow-800 text-xs font-bold">!</span>
@@ -155,10 +155,10 @@ export const DashboardUserInfo: React.FC<DashboardUserInfoProps> = ({ profile })
         {profile.year_of_graduation && (
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <GraduationCap className="w-3 h-3 md:w-3 md:h-3 mr-1 md:mr-2 text-primary-200" />
-              <span className="text-primary-100 text-xs md:text-xs">Graduated</span>
+              <GraduationCap className="w-3 h-3 md:w-3 md:h-3 mr-1 md:mr-2 text-primary-600" />
+              <span className="text-neutral-600 text-xs md:text-xs">Graduated</span>
             </div>
-            <span className="text-white font-medium text-xs md:text-sm">{profile.year_of_graduation}</span>
+            <span className="text-neutral-900 font-medium text-xs md:text-sm">{profile.year_of_graduation}</span>
           </div>
         )}
         
@@ -166,10 +166,10 @@ export const DashboardUserInfo: React.FC<DashboardUserInfoProps> = ({ profile })
         {profile.currently_working_at && (
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <Building2 className="w-3 h-3 md:w-3 md:h-3 mr-1 md:mr-2 text-primary-200" />
-              <span className="text-primary-100 text-xs md:text-xs">Workplace</span>
+              <Building2 className="w-3 h-3 md:w-3 md:h-3 mr-1 md:mr-2 text-primary-600" />
+              <span className="text-neutral-600 text-xs md:text-xs">Workplace</span>
             </div>
-            <span className="text-white font-medium text-right text-xs md:text-xs max-w-[100px] md:max-w-[120px] truncate">
+            <span className="text-neutral-900 font-medium text-right text-xs md:text-xs max-w-[100px] md:max-w-[120px] truncate">
               {profile.currently_working_at}
             </span>
           </div>
@@ -179,18 +179,18 @@ export const DashboardUserInfo: React.FC<DashboardUserInfoProps> = ({ profile })
         {profile.phone && (
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <Phone className="w-3 h-3 md:w-3 md:h-3 mr-1 md:mr-2 text-primary-200" />
-              <span className="text-primary-100 text-xs md:text-xs">Phone</span>
+              <Phone className="w-3 h-3 md:w-3 md:h-3 mr-1 md:mr-2 text-primary-600" />
+              <span className="text-neutral-600 text-xs md:text-xs">Phone</span>
             </div>
-            <span className="text-white font-medium text-xs md:text-sm">{profile.phone}</span>
+            <span className="text-neutral-900 font-medium text-xs md:text-sm">{profile.phone}</span>
           </div>
         )}
       </div>
       
       {/* KMC Validation Warning */}
       {!isKMCValid && profile.kmc_number && (
-        <div className="mt-2 md:mt-3 p-2 bg-yellow-400/20 border border-yellow-400/30 rounded-lg">
-          <p className="text-yellow-200 text-xs">
+        <div className="mt-2 md:mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <p className="text-yellow-700 text-xs">
             ⚠️ KMC number format may be incorrect. Expected format: KMC123456
           </p>
         </div>

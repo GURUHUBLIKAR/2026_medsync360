@@ -386,16 +386,30 @@ const DutyRosterModal: React.FC<DutyRosterModalProps> = ({ isOpen, onClose }) =>
 
           {/* View Controls */}
           <div className="flex items-center gap-2 flex-wrap">
-          {/* Personal View Toggle */}
+          {/* All Duties */}
           <Button
-            onClick={() => setPersonalViewOnly(!personalViewOnly)}
+            onClick={() => setPersonalViewOnly(false)}
+            variant={!personalViewOnly ? "primary" : "outline"}
+            size="sm"
+            aria-label="Show all duties"
+          >
+            <Users className="w-4 h-4 mr-2" />
+            All Duties
+          </Button>
+
+          {/* My Duties */}
+          <Button
+            onClick={() => setPersonalViewOnly(true)}
             variant={personalViewOnly ? "primary" : "outline"}
             size="sm"
-            aria-label={personalViewOnly ? "Show my duties only" : "Show all duties"}
+            aria-label="Show my duties only"
           >
-            {personalViewOnly ? <User className="w-4 h-4 mr-2" /> : <Users className="w-4 h-4 mr-2" />}
-            {personalViewOnly ? 'My Duties' : 'All Duties'}
+            <User className="w-4 h-4 mr-2" />
+            My Duties
           </Button>
+
+          {/* Export (Excel) */}
+          <ExportRoster duties={filteredDuties} isLoading={isLoading} />
 
           {/* Filters */}
           <Button
@@ -450,34 +464,6 @@ const DutyRosterModal: React.FC<DutyRosterModalProps> = ({ isOpen, onClose }) =>
                 Bulk Upload
               </Button>
             )}
-          </div>
-
-          <div className="flex items-center gap-2">
-            {/* Memory usage indicator */}
-            {memoryUsage && (
-              <div className={cn(
-                "text-xs px-2 py-1 rounded-full",
-                memoryUsage.current > 100 ? "bg-red-100 text-red-700" :
-                memoryUsage.current > 50 ? "bg-yellow-100 text-yellow-700" :
-                "bg-green-100 text-green-700"
-              )}>
-                {Math.round(memoryUsage.current)}MB
-              </div>
-            )}
-            
-            <Button
-              onClick={() => refetch()}
-              disabled={isLoading}
-              variant="outline"
-              size="sm" 
-              aria-label="Refresh duty roster"
-            >
-              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-              Refresh
-            </Button>
-            
-            {/* Export Button */}
-            <ExportRoster duties={filteredDuties} isLoading={isLoading} />
           </div>
         </div>
 
@@ -597,18 +583,6 @@ const DutyRosterModal: React.FC<DutyRosterModalProps> = ({ isOpen, onClose }) =>
           </Card>
         )}
 
-        {/* Status Summary */}
-        <div className="flex items-center justify-between text-xs text-gray-500 pt-3 mt-2 border-t border-gray-200">
-          <span>
-            {filteredDuties.length} of {duties.length} {duties.length === 1 ? 'duty' : 'duties'} displayed
-          </span>
-          {queryStartTime > 0 && queryEndTime > 0 && (
-            <span>
-              Query time: {(queryEndTime - queryStartTime).toFixed(0)}ms
-              {memoryUsage && ` • Memory: ${Math.round(memoryUsage.current)}MB`}
-            </span> 
-          )}
-        </div>
       </div>
 
       {/* Schedule Duty Modal */}

@@ -8,12 +8,27 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
+const REQUEST_TIMEOUT_MS = 20000;
+
+// After sleep/background, an in-flight fetch (e.g. a token refresh) can hang on
+// a dead connection forever. Supabase serializes auth calls behind an internal
+// lock, so one stuck request blocks every later query/mutation with no error.
+// Aborting after a timeout releases the lock and lets the request fail/retry.
+const fetchWithTimeout: typeof fetch = (input, init) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  return fetch(input, { ...init, signal: controller.signal }).finally(() =>
+    clearTimeout(timeoutId)
+  );
+};
+
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true, // For client-side usage we want to persist sessions
     autoRefreshToken: true,
     detectSessionInUrl: true
-  }
+  },
+  global: { fetch: fetchWithTimeout }
 });
 
 export const createSupabaseClient = () => {
@@ -22,7 +37,8 @@ export const createSupabaseClient = () => {
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true
-    }
+    },
+    global: { fetch: fetchWithTimeout }
   });
 };
 

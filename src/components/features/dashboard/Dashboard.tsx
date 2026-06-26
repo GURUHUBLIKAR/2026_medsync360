@@ -48,9 +48,9 @@ const Dashboard: React.FC = () => {
   if (loading || !profile) {
     return (
       <div className="space-y-6">
-        <div className="animate-pulse">
-          <div className="h-32 bg-gradient-to-r from-primary-200 to-medical-200 rounded-lg mb-6"></div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+        <div className="animate-pulse space-y-6">
+          <div className="h-32 bg-neutral-200 rounded-lg"></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {Array.from({ length: 2 }).map((_, i) => (
               <div key={i} className="h-24 bg-neutral-200 rounded-lg"></div>
             ))}
@@ -72,7 +72,7 @@ const Dashboard: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className={cn(
-          "bg-gradient-to-r from-primary-600 to-medical-600 rounded-lg text-white",
+          "bg-white rounded-lg shadow-sm border border-neutral-200 text-neutral-900",
           isMobile ? "p-3" : "p-4 md:p-6"
         )}
       >
@@ -87,7 +87,7 @@ const Dashboard: React.FC = () => {
             {/* Profile Photo */}
             <div className="flex-shrink-0">
               <div className={cn(
-                "rounded-full overflow-hidden bg-white/20 border-2 border-white/30",
+                "rounded-full overflow-hidden bg-primary-100 border-2 border-primary-200",
                 isMobile ? "w-12 h-12" : "w-16 h-16 md:w-20 md:h-20"
               )}>
                 {profile.avatar_url ? (
@@ -97,9 +97,9 @@ const Dashboard: React.FC = () => {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-white/10">
+                  <div className="w-full h-full flex items-center justify-center bg-primary-50">
                     <User className={cn(
-                      "text-white/70",
+                      "text-primary-600",
                       isMobile ? "w-6 h-6" : "w-8 h-8 md:w-10 md:h-10"
                     )} />
                   </div>
@@ -116,7 +116,7 @@ const Dashboard: React.FC = () => {
                 {greeting}, Dr. {profile.full_name?.split(' ')[0]}
               </h1>
               <div className={cn(
-                "flex flex-wrap items-center gap-2 text-primary-100",
+                "flex flex-wrap items-center gap-2 text-neutral-600",
                 isMobile ? "text-xs" : "text-sm md:text-base"
               )}>
                 <span className="truncate">{profile.role}</span>
@@ -130,7 +130,7 @@ const Dashboard: React.FC = () => {
                 )}
               </div>
               {isMobile && (
-                <div className="text-primary-100 text-xs mt-1">
+                <div className="text-neutral-600 text-xs mt-1">
                   {currentTime}
                 </div>
               )}
