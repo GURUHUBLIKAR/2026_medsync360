@@ -7,6 +7,7 @@ import { useAuthStore } from '../../../store/authStore';
 import { useMessages, useSendMessage, useMarkAsRead } from '../../../hooks/useChat';
 import { encrypt, decrypt } from '../../../lib/encryption';
 import { cn } from '../../../lib/utils';
+import { VoiceInput } from '../../ui/VoiceInput';
 import type { Conversation, Message } from '../../../types/chat.types';
 import { supabase } from '../../../lib/supabase';
 
@@ -538,10 +539,9 @@ export const MessageThread: React.FC<MessageThreadProps> = ({ conversation, onBa
             className="hidden"
           />
           <div className="flex-1 relative">
-            <input
-              type="text"
+            <VoiceInput
               value={messageText}
-              onChange={(e) => setMessageText(e.target.value)}
+              onValueChange={(value) => setMessageText(value)}
               onKeyDown={handleKeyPress}
               placeholder="Type a message here.."
               className="w-full border border-gray-300 rounded-full px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"

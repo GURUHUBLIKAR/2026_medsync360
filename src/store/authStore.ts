@@ -29,47 +29,54 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // Get initial session
       const { data: { session } } = await supabase.auth.getSession();
       
-      // Set up auth state change listener
-      supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
+      // Set up auth state change listener.
+      // IMPORTANT: keep this callback SYNCHRONOUS. Calling supabase.from()/
+      // supabase.auth.* directly inside it can deadlock Supabase's internal auth
+      // lock when the event was itself triggered by a token refresh. Defer any
+      // Supabase work to a microtask-free setTimeout(..., 0) so the lock is
+      // released before we issue the follow-up request.
+      supabase.auth.onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
         console.log('Auth state changed:', event, session?.user?.email);
-        
+
         if (session?.user) {
-          // User is signed in, fetch their profile
-          try {
-            const { data: profile, error: profileError } = await supabase
-              .from('users')
-              .select('*')
-              .eq('id', session.user.id)
-              .maybeSingle();
+          // User is signed in, fetch their profile (deferred — see note above).
+          setTimeout(async () => {
+            try {
+              const { data: profile, error: profileError } = await supabase
+                .from('users')
+                .select('*')
+                .eq('id', session.user.id)
+                .maybeSingle();
 
-            if (profileError) {
-              console.warn('Profile fetch error:', profileError);
+              if (profileError) {
+                console.warn('Profile fetch error:', profileError);
+              }
+
+              set({
+                user: session.user,
+                profile,
+                loading: false,
+                initialized: true
+              });
+            } catch (error) {
+              console.error('Error fetching profile:', error);
+              set({
+                user: session.user,
+                profile: null,
+                loading: false,
+                initialized: true
+              });
             }
-
-            set({ 
-              user: session.user, 
-              profile, 
-              loading: false,
-              initialized: true 
-            });
-          } catch (error) {
-            console.error('Error fetching profile:', error);
-            set({ 
-              user: session.user, 
-              profile: null, 
-              loading: false,
-              initialized: true 
-            });
-          }
+          }, 0);
         } else {
           // User is signed out
-          set({ 
-            user: null, 
-            profile: null, 
+          set({
+            user: null,
+            profile: null,
             loading: false,
-            initialized: true 
+            initialized: true
           });
-          
+
           // Clear cache when user signs out
           get().clearCache();
         }

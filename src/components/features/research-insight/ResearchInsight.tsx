@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '../../../store/authStore';
 import { useResponsive } from '../../../hooks/useResponsive';
+import { VoiceInput } from '../../ui/VoiceInput';
 import { Button } from '../../ui/Button';
 import { Card } from '../../ui/Card';
 import { ResponsiveModal } from '../../ui/ResponsiveModal';
@@ -342,12 +343,11 @@ export const ResearchInsight: React.FC = () => {
       >
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
-          <input
-            type="text"
+          <VoiceInput
             placeholder="Search research insights, drug names, or case studies..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" 
+            onValueChange={(value) => setSearchQuery(value)}
+            className="w-full pl-10 pr-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             aria-label="Search research content"
           />
         </div>

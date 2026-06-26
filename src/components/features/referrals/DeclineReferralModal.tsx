@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { AlertCircle, XCircle } from 'lucide-react';
 import { Button } from '../../ui/Button';
 import { ResponsiveModal } from '../../ui/ResponsiveModal';
+import { VoiceTextarea } from '../../ui/VoiceInput';
 import { cn } from '../../../lib/utils';
 import toast from 'react-hot-toast';
 
@@ -74,7 +75,7 @@ export const DeclineReferralModal: React.FC<DeclineReferralModalProps> = ({ isOp
               <h4 className="font-medium text-gray-900">Other reason</h4>
             </div>
             {selectedReason === 'other' && (
-              <textarea value={otherReason} onChange={(e) => setOtherReason(e.target.value)} placeholder="Please specify the reason..." className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mt-2" rows={3} />
+              <VoiceTextarea value={otherReason} onValueChange={(value) => setOtherReason(value)} placeholder="Please specify the reason..." className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mt-2" rows={3} />
             )}
           </div>
         </div>
