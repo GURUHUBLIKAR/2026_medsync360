@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Home,
   FileText,
@@ -31,6 +31,7 @@ const mobileNavItemsBase = [
 const MobileNav: React.FC = () => {
   const location = useLocation();
   const { profile } = useAuthStore();
+  const navigate = useNavigate();
   const appRole = (profile as any)?.app_role;
   const isPlatform = appRole === 'platform';
   const isAdmin = appRole === 'platform' || appRole === 'superuser';
@@ -70,9 +71,11 @@ const MobileNav: React.FC = () => {
               <motion.a
                 href={item.href || '#'}
                 onClick={(e) => {
+                  e.preventDefault();
                   if (item.name === 'Roster') {
-                    e.preventDefault();
                     setShowRosterModal(true);
+                  } else if (item.href) {
+                    navigate(item.href);
                   }
                 }}
                 className={cn(

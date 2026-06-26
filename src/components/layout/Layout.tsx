@@ -26,35 +26,26 @@ export const Layout: React.FC<LayoutProps> = ({ children, showSidebar = true }) 
       <div className="flex">
         {/* Sidebar for desktop/tablet */}
         {showSidebar && (isDesktop || isTablet) && (
-          <Sidebar 
-            isOpen={isDesktop || sidebarOpen} 
+          <Sidebar
+            isOpen={isDesktop || sidebarOpen}
             onClose={() => setSidebarOpen(false)}
-            className={cn(
-              "transition-all duration-300",
-              isTablet ? "w-16" : "w-64"
-            )}
+            className="transition-all duration-300"
           />
         )}
-        
+
         {/* Main content */}
         <main className={cn(
-          "flex-1 min-h-screen transition-all duration-300",
-          // Desktop spacing
-          showSidebar && isDesktop && "ml-64",
+          "flex-1 min-w-0 min-h-screen transition-all duration-300",
           // Tablet spacing
           showSidebar && isTablet && "ml-16",
           // Mobile spacing for bottom nav
           isMobile && "pb-16"
         )}>
           <div className={cn(
-            // Enhanced mobile-first responsive padding
-            "px-4 py-4 max-w-full",
-            // Tablet enhancements - more generous spacing
-            "md:px-8 md:py-6 md:max-w-none",
-            // Desktop enhancements - optimal spacing
-            "lg:px-12 lg:py-8 lg:max-w-7xl lg:mx-auto",
-            // Extra large screens
-            "xl:px-16 xl:py-10"
+            // Full-width, mobile-first responsive padding
+            "w-full px-4 py-4",
+            "md:px-6 md:py-6",
+            "lg:px-8 lg:py-8"
           )}>
             {children}
           </div>

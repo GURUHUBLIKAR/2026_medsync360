@@ -62,7 +62,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle, isSidebarOpen }) =
   }, [navigate]);
   return (
     <motion.header 
-      className="bg-white border-b border-neutral-200 sticky top-0 z-50"
+      className="bg-[var(--chrome-bg)] border-b border-[var(--chrome-border)] sticky top-0 z-50"
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.3 }}

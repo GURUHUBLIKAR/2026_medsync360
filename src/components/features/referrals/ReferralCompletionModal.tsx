@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Button } from '../../ui/Button';
 import { ResponsiveModal } from '../../ui/ResponsiveModal';
+import { VoiceTextarea } from '../../ui/VoiceInput';
 import { cn } from '../../../lib/utils';
 import { useAuthStore } from '../../../store/authStore';
 import { useAddMedicationHistory } from '../../../hooks/useReferrals';
@@ -334,9 +335,9 @@ export const ReferralCompletionModal: React.FC<ReferralCompletionModalProps> = (
                         <Stethoscope className="w-4 h-4 mr-2 text-green-600" />
                         Final Medication <span className="text-red-500 ml-1">*</span>
                       </label>
-                      <textarea
+                      <VoiceTextarea
                         value={updatedMedication}
-                        onChange={(e) => setUpdatedMedication(e.target.value)}
+                        onValueChange={(value) => setUpdatedMedication(value)}
                         rows={3}
                         className={cn(
                           "w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors resize-none",
@@ -364,9 +365,9 @@ export const ReferralCompletionModal: React.FC<ReferralCompletionModalProps> = (
                     <AlertTriangle className="w-4 h-4 mr-2 text-red-600" />
                     Reasons for Not Attending <span className="text-red-500 ml-1">*</span>
                   </label>
-                  <textarea
+                  <VoiceTextarea
                     value={reasons}
-                    onChange={(e) => setReasons(e.target.value)}
+                    onValueChange={(value) => setReasons(value)}
                     rows={3}
                     className={cn(
                       "w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors resize-none",
@@ -514,9 +515,9 @@ export const ReferralCompletionModal: React.FC<ReferralCompletionModalProps> = (
                 Diagnosis Details <span className="text-red-500 ml-1">*</span>
                 <span className="text-xs text-gray-500 ml-2">(Max 500 words)</span>
               </label>
-              <textarea
+              <VoiceTextarea
                 value={finalDiagnosisDetails}
-                onChange={(e) => setFinalDiagnosisDetails(e.target.value)}
+                onValueChange={(value) => setFinalDiagnosisDetails(value)}
                 rows={6}
                 maxLength={2500}
                 className={cn(

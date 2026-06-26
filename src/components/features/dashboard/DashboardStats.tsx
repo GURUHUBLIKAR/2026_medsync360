@@ -7,7 +7,6 @@ import {
   Clock,
   RefreshCw
 } from 'lucide-react';
-import { Card } from '../../ui/Card';
 import { Button } from '../../ui/Button';
 import { useResponsive } from '../../../hooks/useResponsive';
 import { useDashboardStats } from '../../../hooks/useDashboardData';
@@ -115,11 +114,11 @@ export const DashboardStats: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
             >
-              <Card 
-                variant="elevated" 
-                padding={isMobile ? "sm" : "md"} 
-                hoverable 
-                className="relative overflow-hidden h-full"
+              <div
+                className={cn(
+                  "relative overflow-hidden h-full rounded-xl border border-neutral-200 bg-white shadow-sm transition-colors hover:border-neutral-300",
+                  isMobile ? "p-3" : "p-4"
+                )}
               >
                 {/* Live indicator for real data */}
                 {(stat.name === 'Active Referrals' || stat.name === 'Upcoming Duties') && (
@@ -176,7 +175,7 @@ export const DashboardStats: React.FC = () => {
                     </p>
                   </div>
                 </div>
-              </Card>
+              </div>
             </motion.div>
           );
         })}
