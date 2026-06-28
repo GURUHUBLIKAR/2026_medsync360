@@ -15,6 +15,7 @@ import toast from 'react-hot-toast';
 import { useAuthStore } from '../../../store/authStore';
 import { usePreferences, type NotificationPrefs } from '../../../store/preferencesStore';
 import { supabase } from '../../../lib/supabase';
+import { isKmcNumberTaken } from '../../../lib/kmc';
 import { Button } from '../../ui/Button';
 import { cn } from '../../../lib/utils';
 
@@ -198,11 +199,19 @@ const ProfileSection: React.FC<{
   const handleSave = async () => {
     setSaving(true);
     try {
+      const kmc = form.kmc_number.trim();
+      // A KMC number uniquely identifies a doctor — block saving one that
+      // already belongs to another account (ignore our own existing value).
+      if (kmc && (await isKmcNumberTaken(kmc, profile.id))) {
+        toast.error('This KMC number is already registered to another account.');
+        return;
+      }
+
       await updateProfile({
         full_name: form.full_name.trim(),
         role: form.role || null,
         department: form.department.trim() || null,
-        kmc_number: form.kmc_number.trim() || null,
+        kmc_number: kmc || null,
         phone: form.phone.trim() || null,
         year_of_graduation: form.year_of_graduation ? Number(form.year_of_graduation) : null,
         currently_working_at: form.currently_working_at.trim() || null,
@@ -210,7 +219,13 @@ const ProfileSection: React.FC<{
       toast.success('Profile saved');
     } catch (err: any) {
       console.error('Profile save failed:', err);
-      toast.error(err?.message || 'Could not save profile');
+      // Backstop for the KMC unique index, in case it slipped past the
+      // pre-save check (e.g. a concurrent submission).
+      if (err?.code === '23505' && String(err?.message || '').toLowerCase().includes('kmc')) {
+        toast.error('This KMC number is already registered to another account.');
+      } else {
+        toast.error(err?.message || 'Could not save profile');
+      }
     } finally {
       setSaving(false);
     }

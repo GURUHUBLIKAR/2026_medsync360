@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { supabase } from '../lib/supabase';
-import type { NamedCount } from './useReferralAnalytics';
+import type { NamedCount } from './useReferralAnalyticsOverview';
 
 // ---------------------------------------------------------------------------
 // Decline-reason breakdown (from the referral_decline_reasons table).

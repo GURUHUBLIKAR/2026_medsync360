@@ -176,7 +176,7 @@ const FlowSankey: React.FC<{ data: ReferralAnalytics['sankey'] }> = ({ data }) =
   );
 };
 
-const SuperuserView: React.FC<{ data: ReferralAnalytics; isPlatform: boolean }> = ({ data, isPlatform }) => (
+const SuperuserView: React.FC<{ data: ReferralAnalytics }> = ({ data }) => (
   <>
     {/* Operational KPI strip */}
     <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
@@ -235,74 +235,54 @@ const SuperuserView: React.FC<{ data: ReferralAnalytics; isPlatform: boolean }> 
   </>
 );
 
-// ---- Page ----------------------------------------------------------------
+// ---- Embedded section ----------------------------------------------------
 
-export const AnalyticsPage: React.FC = () => {
+/**
+ * The original role-scoped Analytics, embedded as a section beneath the
+ * charts/leaderboard Overview. Fetches the SECURITY DEFINER
+ * `get_referral_analytics` RPC, which aggregates server-side over the last 12
+ * months and scopes by role: a doctor sees their own activity, a superuser
+ * sees their whole hospital, and a platform owner sees the entire network —
+ * a scope the client-side Overview above cannot compute.
+ */
+export const OperationalInsights: React.FC = () => {
   const { profile } = useAuthStore();
   const appRole = (profile as any)?.app_role as string | undefined;
-  const isPlatform = appRole === 'platform';
-  const isManager = isPlatform || appRole === 'superuser';
-  const { data, isLoading, isError, error, refetch, isFetching } = useReferralAnalytics();
-
-  const title = isManager ? 'Referral Analytics' : 'My Analytics';
-  const scopeLabel = isPlatform
-    ? 'Network-wide operational insights (all hospitals).'
-    : appRole === 'superuser'
-      ? 'Operational insights across your hospital — where to improve.'
-      : 'Your own referral activity.';
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-24 text-gray-500">
-        <RefreshCw className="w-5 h-5 animate-spin mr-2" /> Loading analytics…
-      </div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <Card padding="lg" className="border-red-200 bg-red-50 max-w-xl mx-auto mt-8">
-        <div className="flex items-center gap-3 mb-2">
-          <AlertCircle className="w-6 h-6 text-red-600" />
-          <h3 className="text-lg font-semibold text-red-800">Could not load analytics</h3>
-        </div>
-        <p className="text-red-700 text-sm mb-4">{error instanceof Error ? error.message : 'Unknown error'}</p>
-        <Button onClick={() => refetch()} variant="outline" size="sm"><RefreshCw className="w-4 h-4 mr-2" /> Retry</Button>
-      </Card>
-    );
-  }
+  const isManager = appRole === 'platform' || appRole === 'superuser';
+  const { data, isLoading, isError, error, refetch } = useReferralAnalytics();
 
   const hasData = (data?.totals.total ?? 0) > 0;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <BarChart3 className="w-6 h-6 text-primary-600" /> {title}
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">{scopeLabel} Last 12 months.</p>
+    <div className="pt-2">
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12 text-gray-500">
+          <RefreshCw className="w-5 h-5 animate-spin mr-2" /> Loading analytics…
         </div>
-        <Button onClick={() => refetch()} variant="outline" size="sm" disabled={isFetching}>
-          <RefreshCw className={`w-4 h-4 mr-2 ${isFetching ? 'animate-spin' : ''}`} /> Refresh
-        </Button>
-      </div>
-
-      {!hasData ? (
+      ) : isError ? (
+        <Card padding="lg" className="border-red-200 bg-red-50">
+          <div className="flex items-center gap-3 mb-2">
+            <AlertCircle className="w-6 h-6 text-red-600" />
+            <h3 className="text-lg font-semibold text-red-800">Could not load analytics</h3>
+          </div>
+          <p className="text-red-700 text-sm mb-4">{error instanceof Error ? error.message : 'Unknown error'}</p>
+          <Button onClick={() => refetch()} variant="outline" size="sm"><RefreshCw className="w-4 h-4 mr-2" /> Retry</Button>
+        </Card>
+      ) : !hasData ? (
         <Card padding="lg">
-          <div className="text-center py-12">
-            <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+          <div className="text-center py-10">
+            <FileText className="w-10 h-10 text-gray-300 mx-auto mb-3" />
             <h3 className="text-lg font-semibold text-gray-900 mb-1">No referral data yet</h3>
             <p className="text-gray-500 text-sm">Analytics will appear here once referrals exist.</p>
           </div>
         </Card>
-      ) : isManager ? (
-        <SuperuserView data={data!} isPlatform={isPlatform} />
       ) : (
-        <DoctorView data={data!} />
+        <div className="space-y-6">
+          {isManager ? <SuperuserView data={data!} /> : <DoctorView data={data!} />}
+        </div>
       )}
     </div>
   );
 };
 
-export default AnalyticsPage;
+export default OperationalInsights;

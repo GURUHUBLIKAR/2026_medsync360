@@ -430,7 +430,7 @@ const DutyRosterModal: React.FC<DutyRosterModalProps> = ({ isOpen, onClose }) =>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex justify-between items-center">
+        <div className="flex flex-wrap justify-between items-center gap-y-2">
           <div className="flex items-center gap-2">
             <Button
               onClick={() => {
@@ -464,6 +464,13 @@ const DutyRosterModal: React.FC<DutyRosterModalProps> = ({ isOpen, onClose }) =>
                 Bulk Upload
               </Button>
             )}
+          </div>
+
+          {/* Roster summary — right aligned, on the same line as Schedule Duty */}
+          <div className="flex items-center gap-4 text-xs text-neutral-600 ml-auto">
+            <span>Total duties this {viewMode === 'weekly' ? 'week' : 'month'}: {filteredDuties.length}</span>
+            <span>Departments: {new Set(filteredDuties.map(d => d.department).filter(Boolean)).size}</span>
+            <span>Doctors: {new Set(filteredDuties.map(d => d.user?.full_name).filter(Boolean)).size}</span>
           </div>
         </div>
 

@@ -9,10 +9,10 @@ import {
   FileText,
   Bot,
   BarChart3,
-  Activity,
   FlaskConical,
   Building2,
   ShieldCheck,
+  Settings,
   PanelLeftClose,
   PanelLeftOpen,
   X
@@ -37,7 +37,7 @@ const navigationItems = [
   { name: 'Duty Roster', icon: Calendar, action: 'roster' },
   { name: 'Research Insight', href: '/research-insight', icon: FlaskConical },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
-  { name: 'Analytics Overview', href: '/analytics-overview', icon: Activity },
+  { name: 'Settings', href: '/settings', icon: Settings },
   // Superuser + platform owner: approve doctors / superuser requests.
   { name: 'Approvals', href: '/approvals', icon: ShieldCheck, adminOnly: true },
   // Platform-owner-only: onboard hospitals.

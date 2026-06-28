@@ -19,9 +19,10 @@ import {
 import { subDays, startOfDay, endOfDay, startOfMonth } from 'date-fns';
 import { Button } from '../../ui/Button';
 import { cn } from '../../../lib/utils';
-import { useReferralAnalytics, type AnalyticsFilters } from '../../../hooks/useReferralAnalytics';
+import { useReferralAnalytics, type AnalyticsFilters } from '../../../hooks/useReferralAnalyticsOverview';
 import { useDeclineReasonStats, useDutyAnalytics } from '../../../hooks/useOpsAnalytics';
 import { ChartCard, KpiCard, BarList, DonutChart, TrendArea, LeaderboardList } from './charts';
+import { OperationalInsights } from './OperationalInsights';
 
 type RangeKey = '7d' | '30d' | '90d' | '12m' | 'month';
 
@@ -158,6 +159,10 @@ const Analytics: React.FC = () => {
           </Button>
         </div>
       </div>
+
+      {/* Original role-scoped, server-aggregated analytics (doctor / manager / platform).
+          Always shown — independent of the range/department filter below. */}
+      {!isLoading && <OperationalInsights />}
 
       {isLoading ? (
         <AnalyticsSkeleton />

@@ -21,7 +21,7 @@ const ResearchInsight = lazy(() => import('./components/features/research-insigh
 const HospitalManagement = lazy(() => import('./components/features/hospitals/HospitalManagement').then(module => ({ default: module.HospitalManagement })));
 const ApprovalsPage = lazy(() => import('./components/features/admin/ApprovalsPage').then(module => ({ default: module.ApprovalsPage })));
 const MedSyncVideo = lazy(() => import('./components/features/video/MedSyncVideo').then(module => ({ default: module.MedSyncVideo })));
-const Analytics = lazy(() => import('./components/features/analytics/AnalyticsPage').then(module => ({ default: module.AnalyticsPage })));
+const Analytics = lazy(() => import('./components/features/analytics/Analytics').then(module => ({ default: module.Analytics })));
 
 const AIAssistant = lazy(() => Promise.resolve({ default: () => (
   <div className="text-center py-12">
@@ -29,9 +29,6 @@ const AIAssistant = lazy(() => Promise.resolve({ default: () => (
     <p className="text-neutral-600">AI-powered medical insights coming soon...</p>
   </div>
 )}));
-
-// main's richer charts/leaderboard analytics, kept alongside the role-scoped AnalyticsPage.
-const AnalyticsOverview = lazy(() => import('./components/features/analytics/Analytics').then(module => ({ default: module.Analytics })));
 
 const Settings = lazy(() => import('./components/features/settings/Settings').then(module => ({ default: module.Settings })));
 
@@ -322,10 +319,8 @@ function App() {
               <Route path="/referrals" element={<ReferralManagement />} />
               <Route path="/messages" element={<Messages />} />
               <Route path="/ai-assistant" element={<AIAssistant />} />
-              {/* Role-scoped analytics (gurutomain) */}
+              {/* Charts/leaderboard analytics */}
               <Route path="/analytics" element={<Analytics />} />
-              {/* Charts/leaderboard analytics (main) */}
-              <Route path="/analytics-overview" element={<AnalyticsOverview />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/research-insight" element={<ResearchInsight />} />
               {/* gurutomain admin/platform features */}

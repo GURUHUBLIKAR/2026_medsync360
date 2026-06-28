@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '../../../store/authStore';
 import { supabase } from '../../../lib/supabase';
+import { isKmcNumberTaken } from '../../../lib/kmc';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 
@@ -222,10 +223,20 @@ export const OnboardingForm: React.FC = () => {
     e.preventDefault();
     
     if (!validateForm()) return;
-    
+
     setIsSubmitting(true);
-    
+
     try {
+      // A KMC number uniquely identifies a doctor — reject one already
+      // registered to another account before creating this profile.
+      if (await isKmcNumberTaken(formData.kmcNumber, user?.id)) {
+        const message = 'This KMC number is already registered to another account.';
+        setErrors(prev => ({ ...prev, kmcNumber: message }));
+        toast.error(message);
+        document.querySelector('[data-error="true"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+
       let avatarUrl = null;
       
       // Upload profile picture if provided
@@ -285,7 +296,13 @@ export const OnboardingForm: React.FC = () => {
     } catch (error: any) {
       console.error('Onboarding error:', error);
       
-      if (error.message?.includes('duplicate key value violates unique constraint')) {
+      const errMsg = String(error?.message || '');
+      if (error?.code === '23505' && errMsg.toLowerCase().includes('kmc')) {
+        // KMC unique-index backstop (e.g. a concurrent registration).
+        const message = 'This KMC number is already registered to another account.';
+        setErrors(prev => ({ ...prev, kmcNumber: message }));
+        toast.error(message);
+      } else if (errMsg.includes('duplicate key value violates unique constraint')) {
         toast.error('Some information is already registered. Please check your details.');
       } else {
         toast.error('Failed to complete profile. Please try again.');

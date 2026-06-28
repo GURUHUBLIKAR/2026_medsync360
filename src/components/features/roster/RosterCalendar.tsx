@@ -222,13 +222,6 @@ const RosterCalendar: React.FC<RosterCalendarProps> = ({
           ))}
         </div>
 
-        {/* Summary Footer */}
-        <div className="p-2 bg-neutral-50 border-t border-neutral-200 sticky bottom-0 z-10"> 
-          <div className="flex items-center justify-between text-xs text-neutral-600">
-            <span>Total duties this week: {duties.length}</span>
-            <span>Departments: {activeDepartments.length}</span>
-          </div>
-        </div>
       </Card>
     );
   }
@@ -313,16 +306,6 @@ const RosterCalendar: React.FC<RosterCalendarProps> = ({
         ))}
       </div>
 
-      {/* Summary Footer */ }
-      <div className="p-2 bg-neutral-50 border-t border-neutral-200 sticky bottom-0 z-10 shadow-sm">
-        <div className="flex items-center justify-between text-xs text-neutral-600">
-          <span>Total duties this month: {duties.length}</span>
-          <div className="flex items-center gap-4">
-            <span>Departments: {activeDepartments.length}</span>
-            <span>Doctors: {new Set(duties.map(d => d.user?.full_name).filter(Boolean)).size}</span>
-          </div>
-        </div> 
-      </div>
     </Card>
   );
 };
